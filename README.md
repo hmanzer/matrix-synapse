@@ -8,6 +8,11 @@
     - [commandline]
     - [API]
   - [access_token]
+  - [maintenance]
+    - [media]
+    - [events]
+  - [database]
+
 
 ## registration
 1. ### commandline
@@ -50,7 +55,49 @@ More details can be obtained from the official documentation https://matrix-org.
 
 
 ## access_token
+We need acess token to use all admin APIs.
 you can get access token as the output of your POST request <br> 
 or <br>
 you can get it from the element client. This has a short life <br>
 Click on Top Right of User > All Settings > Help and About > Advanced <br>
+
+## maintenance
+
+1. ### media
+
+    #### purge local media
+    ```
+    POST /_synapse/admin/v1/media/<server_name>/delete?before_ts=<before_ts>
+    {}
+    ```
+    #### purge remote media
+    ```
+    POST /_synapse/admin/v1/purge_media_cache?before_ts=<unix_timestamp_in_ms>
+    {}
+    ```
+2. ### events
+    #### purge history
+    The API is:
+
+
+    POST /_synapse/admin/v1/purge_history/<room_id>[/<event_id>]
+    By default, events sent by local users are not deleted, as they may represent the only copies of this content in existence. (Events sent by remote users are deleted.)
+
+    Room state data (such as joins, leaves, topic) is always preserved.
+
+    To delete local message events as well, set delete_local_events in the body:
+
+
+    {
+    "delete_local_events": true
+    }
+    The caller must specify the point in the room to purge up to. This can be specified by including an event_id in the URI, or by setting a purge_up_to_event_id or purge_up_to_ts in the request body. If an event id is given, that event (and others at the same graph depth) will be retained. If purge_up_to_ts is given, it should be a timestamp since the unix epoch, in milliseconds.
+
+    The API starts the purge running, and returns immediately with a JSON body with a purge id
+
+
+## database
+To reclaim the disk space and return it to the operating system, you need to run VACUUM FULL; on the database.
+
+
+
